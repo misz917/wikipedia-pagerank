@@ -3,14 +3,14 @@ use std::collections::HashMap;
 use crate::{data::Data, markov_config::MarkovConfig};
 
 #[derive(Debug)]
-pub struct Markov {
+pub struct MarkovSimulator {
     data: Data,
     markov_config: MarkovConfig,
 }
 
-impl Markov {
+impl MarkovSimulator {
     pub fn new(data: Data) -> Self {
-        Markov {
+        MarkovSimulator {
             data,
             markov_config: MarkovConfig::default(),
         }
@@ -48,7 +48,7 @@ impl Markov {
         }
 
         simulation_results.steps_passed = Some(self.markov_config.simulation_steps);
-        tracing::info!("Done. Simulation finished");
+        tracing::info!("Done. MarkovSimulator finished");
         simulation_results
     }
 

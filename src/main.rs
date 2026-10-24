@@ -2,14 +2,14 @@ use clap::Parser;
 
 use crate::cli::Cli;
 use crate::data_loader::DataLoader;
-use crate::markov::Markov;
 use crate::markov_config::MarkovConfig;
+use crate::markov_simulator::MarkovSimulator;
 
 mod cli;
 pub mod data;
 mod data_loader;
-mod markov;
 pub mod markov_config;
+mod markov_simulator;
 pub mod record;
 
 fn main() {
@@ -25,9 +25,9 @@ fn main() {
     let mut config = MarkovConfig::default();
     config.simulation_steps = 1_000_000;
 
-    let mut markov = Markov::new(data);
-    markov.set_config(config);
+    let mut simulator = MarkovSimulator::new(data);
+    simulator.set_config(config);
 
-    let simulation_results = markov.run_simulation();
+    let simulation_results = simulator.run_simulation();
     simulation_results.print_normalized_results();
 }
