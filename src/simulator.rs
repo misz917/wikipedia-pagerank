@@ -1,22 +1,22 @@
 use std::collections::HashMap;
 
-use crate::{data::Data, markov_config::MarkovConfig};
+use crate::{data::Data, simulation_config::SimulationConfig};
 
 #[derive(Debug)]
-pub struct MarkovSimulator {
+pub struct Simulator {
     data: Data,
-    markov_config: MarkovConfig,
+    markov_config: SimulationConfig,
 }
 
-impl MarkovSimulator {
+impl Simulator {
     pub fn new(data: Data) -> Self {
-        MarkovSimulator {
+        Simulator {
             data,
-            markov_config: MarkovConfig::default(),
+            markov_config: SimulationConfig::default(),
         }
     }
 
-    pub fn set_config(&mut self, markov_config: MarkovConfig) {
+    pub fn set_config(&mut self, markov_config: SimulationConfig) {
         self.markov_config = markov_config;
     }
 
@@ -48,7 +48,7 @@ impl MarkovSimulator {
         }
 
         simulation_results.steps_passed = Some(self.markov_config.simulation_steps);
-        tracing::info!("Done. MarkovSimulator finished");
+        tracing::info!("Done. Simulator finished");
         simulation_results
     }
 
