@@ -4,6 +4,8 @@ use thiserror::Error;
 pub enum SimulationConfigError {
     #[error("random jump chance should be between 0.0 and 1.0, {0} was provided")]
     RandomJumpChance(f32),
+    #[error("simulation steps must be greater than 0")]
+    ZeroSimulationSteps,
 }
 
 #[derive(Debug)]
@@ -31,7 +33,16 @@ impl SimulationConfig {
             ));
         }
 
-        tracing::info!("Config test passed");
-        Ok(())
+        if self.simulation_steps == 0 {
+            errors.push(SimulationConfigError::ZeroSimulationSteps);
+        }
+
+        if errors.is_empty() {
+            tracing::info!("Config test passed");
+            Ok(())
+        } else {
+            tracing::error!("Config test failed");
+            Err(errors)
+        }
     }
 }
