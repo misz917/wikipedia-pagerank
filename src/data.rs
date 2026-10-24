@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::record::Record;
 
-pub struct Data(HashMap<u32, Vec<u32>>);
+#[derive(Debug)]
+pub struct Data(pub HashMap<u32, Vec<u32>>);
 
 impl Data {
     pub fn new() -> Self {
@@ -18,5 +19,22 @@ impl Data {
         } else {
             self.0.insert(key, vec![value]);
         }
+    }
+
+    #[inline]
+    pub fn get_by_key(&self, key: u32) -> Option<&Vec<u32>> {
+        self.0.get(&key)
+    }
+
+    pub fn get_random(&self) -> Option<u32> {
+        let keys: Vec<&u32> = self.0.keys().collect();
+        if keys.len() == 0 {
+            return None;
+        }
+
+        let random_index = rand::random_range(0..keys.len());
+        let random_key = keys[random_index];
+
+        Some(*random_key)
     }
 }

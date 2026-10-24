@@ -52,13 +52,13 @@ impl DataLoader {
             record = line.parse().unwrap();
             data.insert_record(&record);
 
+            line.clear();
+            i += 1;
+
             tracing::trace!("Parsed: {:?}", record);
             if i % 100 == 0 {
                 tracing::debug!("Parsed {i} records");
             }
-
-            line.clear();
-            i += 1;
         }
         tracing::info!("Done. Parsed {i} records");
 
