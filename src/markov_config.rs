@@ -15,7 +15,7 @@ pub struct MarkovConfig {
 impl Default for MarkovConfig {
     fn default() -> Self {
         Self {
-            random_jump_chance: 0.85,
+            random_jump_chance: 0.15,
             simulation_steps: 1000,
         }
     }

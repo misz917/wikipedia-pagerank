@@ -30,10 +30,17 @@ impl Markov {
         for step in 1..=self.markov_config.simulation_steps {
             simulation_results.increment(current_node);
 
+            // if key was found in the hashmap
             if let Some(connected_nodes) = self.data.get_by_key(current_node) {
-                let random_index = rand::random_range(0..connected_nodes.len());
-                next_node = connected_nodes[random_index];
+                if rand::random_bool(self.markov_config.random_jump_chance.into()) {
+                    // if random jump chance hit -> do a random jump
+                    next_node = self.data.get_random().unwrap();
+                } else {
+                    // if random jump chance missed -> choose randomly among connections
+                    next_node = Self::random_next(connected_nodes);
+                }
             } else {
+                // if key wasn't in the hashmap -> do a random jump
                 next_node = self.data.get_random().unwrap();
             }
 
@@ -43,6 +50,13 @@ impl Markov {
         simulation_results.steps_passed = Some(self.markov_config.simulation_steps);
         tracing::info!("Done. Simulation finished");
         simulation_results
+    }
+
+    fn random_next(nodes: &Vec<u32>) -> u32 {
+        let random_index = rand::random_range(0..nodes.len());
+        let next_node = nodes[random_index];
+
+        next_node
     }
 }
 
