@@ -26,5 +26,16 @@ fn main() {
 
     let simulator = Simulator::new(data, config).unwrap();
     let simulation_results = simulator.run();
-    simulation_results.print_normalized_results();
+
+    let normalized = simulation_results.normalized();
+    let mut i = 0;
+    for result in normalized {
+        if i < 100 {
+            i += 1;
+        } else {
+            break;
+        }
+
+        println!("Node: {}, Quality: {}", result.0, result.1);
+    }
 }

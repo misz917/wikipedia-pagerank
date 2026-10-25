@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cmp::Ordering, collections::HashMap};
 
 use rand::seq::IndexedRandom;
 
@@ -89,13 +89,20 @@ impl SimulationResults {
         self.steps += 1;
     }
 
-    pub fn print_normalized_results(&self) {
-        let keys = self.visits.keys();
+    pub fn normalized(&self) -> Vec<(u32, f64)> {
+        let steps = self.steps.max(1) as f64; // to ensure there won't be division by 0
+        let mut scores: Vec<(u32, f64)> = self
+            .visits
+            .iter()
+            .map(|(k, v)| (*k, *v as f64 / steps))
+            .collect();
 
-        let mut quality: f32;
-        for k in keys {
-            quality = *self.visits.get(k).unwrap() as f32 / self.steps as f32;
-            println!("Node: {}, Quality: {}", k, quality);
-        }
+        scores.sort_by(|(ak, av), (bk, bv)| {
+            bv.partial_cmp(av)
+                .unwrap_or(Ordering::Equal)
+                .then(bk.cmp(ak))
+        });
+
+        scores
     }
 }
