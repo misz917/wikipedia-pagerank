@@ -76,7 +76,7 @@ impl Simulator {
 
             if i % one_percent == 0 {
                 let progress = i / one_percent;
-                tracing::info!("Thread: {}, Progress: {}%", thread_num, progress);
+                tracing::info!("Thread: {:>3}, Progress: {:>3}%", thread_num, progress);
             }
         }
 
