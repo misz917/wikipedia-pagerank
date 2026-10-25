@@ -10,6 +10,7 @@ pub mod data;
 mod data_loader;
 pub mod record;
 pub mod simulation_config;
+pub mod simulation_results;
 mod simulator;
 
 fn main() {
