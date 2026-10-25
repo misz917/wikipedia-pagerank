@@ -39,4 +39,11 @@ impl SimulationResults {
 
         scores
     }
+
+    pub fn merge(&mut self, other: SimulationResults) {
+        for (node, count) in other.visits {
+            *self.visits.entry(node).or_insert(0) += count;
+        }
+        self.steps += other.steps;
+    }
 }

@@ -1,4 +1,5 @@
 use rand::seq::IndexedRandom;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::{
     data::Data,
@@ -16,7 +17,7 @@ pub struct Simulator {
 impl Simulator {
     pub fn new(data: Data, config: SimulationConfig) -> Result<Self, Vec<SimulationConfigError>> {
         config.test_config()?;
-        let source_nodes: Vec<u32> = data.0.keys().map(|k| *k).collect();
+        let source_nodes: Vec<u32> = data.0.keys().copied().collect();
 
         Ok(Self {
             data,
@@ -27,15 +28,44 @@ impl Simulator {
 
     pub fn run(self) -> SimulationResults {
         let steps = self.config.simulation_steps;
+        let threads = rayon::current_num_threads();
+        let steps_per_thread = steps / threads as u64;
+        let step_division_remainder = steps % threads as u64;
 
         tracing::info!("Starting simulation");
         tracing::info!(
-            steps,
+            threads,
+            steps_per_thread,
+            step_division_remainder,
             random_jump_chance = self.config.random_jump_chance,
             nodes = self.source_nodes.len()
         );
 
-        let one_percent = steps / 100;
+        let combined_results = (0..threads)
+            .into_par_iter()
+            .map(|thread_num| {
+                let steps_to_do = if step_division_remainder > thread_num as u64 {
+                    steps_per_thread + 1
+                } else {
+                    steps_per_thread
+                };
+
+                self.run_thread(steps_to_do, thread_num)
+            })
+            .reduce(
+                || SimulationResults::new(&self.data),
+                |mut accumulator, other| {
+                    accumulator.merge(other);
+                    accumulator
+                },
+            );
+
+        tracing::info!("Done. Simulation finished");
+        combined_results
+    }
+
+    fn run_thread(&self, steps: u64, thread_num: usize) -> SimulationResults {
+        let one_percent = (steps / 100).max(1);
 
         let mut results = SimulationResults::new(&self.data);
         let mut current_node = self.data.get_random().unwrap();
@@ -44,13 +74,12 @@ impl Simulator {
             results.record(current_node);
             current_node = self.next_node(current_node);
 
-            if one_percent > 0 && i % one_percent == 0 {
+            if i % one_percent == 0 {
                 let progress = i / one_percent;
-                tracing::info!("Progress: {}%", progress);
+                tracing::info!("Thread: {}, Progress: {}%", thread_num, progress);
             }
         }
 
-        tracing::info!("Done. Simulation finished");
         results
     }
 
