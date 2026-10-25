@@ -2,6 +2,7 @@ use clap::Parser;
 
 use crate::cli::Cli;
 use crate::data_loader::DataLoader;
+use crate::results_writer::ResultsWriter;
 use crate::simulation_config::SimulationConfig;
 use crate::simulator::Simulator;
 
@@ -9,6 +10,7 @@ mod cli;
 pub mod data;
 mod data_loader;
 pub mod record;
+mod results_writer;
 pub mod simulation_config;
 pub mod simulation_results;
 mod simulator;
@@ -41,4 +43,10 @@ fn main() {
     }
 
     println!("Execution time: {:?}", simulation_results.execution_time);
+
+    ResultsWriter::new("results.txt")
+        .with_names("wiki-topcats-page-names.txt")
+        .unwrap()
+        .write(&simulation_results)
+        .unwrap();
 }
