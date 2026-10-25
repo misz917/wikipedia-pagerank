@@ -36,15 +36,22 @@ impl Simulator {
             nodes = self.source_nodes.len()
         );
 
+        let one_percent = steps / 100;
+
         let mut results = SimulationResults::new(&self.data);
         let mut current_node = self.data.get_random().unwrap();
 
-        for _ in 0..steps {
+        for i in 0..steps {
             results.record(current_node);
             current_node = self.next_node(current_node);
+
+            if i % one_percent == 0 {
+                let progress = i / one_percent;
+                tracing::info!("Progress: {}%", progress);
+            }
         }
 
-        tracing::info!("simulation finished");
+        tracing::info!("Done. Simulation finished");
         results
     }
 
