@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use rand::seq::IndexedRandom;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -41,7 +43,7 @@ impl Simulator {
             nodes = self.source_nodes.len()
         );
 
-        let combined_results = (0..threads)
+        let mut combined_results = (0..threads)
             .into_par_iter()
             .map(|thread_num| {
                 let steps_to_do = if step_division_remainder > thread_num as u64 {
@@ -60,11 +62,17 @@ impl Simulator {
                 },
             );
 
+        combined_results.nodes = Some(self.source_nodes.len() as u32);
+        combined_results.threads = Some(threads);
+        combined_results.steps_per_thread = Some(steps_per_thread);
+        combined_results.step_division_remainder = Some(step_division_remainder);
+
         tracing::info!("Done. Simulation finished");
         combined_results
     }
 
     fn run_thread(&self, steps: u64, thread_num: usize) -> SimulationResults {
+        let start = Instant::now();
         let one_percent = (steps / 100).max(1);
 
         let mut results = SimulationResults::new(&self.data);
@@ -79,6 +87,9 @@ impl Simulator {
                 tracing::info!("Thread: {:>3}, Progress: {:>3}%", thread_num, progress);
             }
         }
+
+        let elapsed = start.elapsed();
+        results.execution_time = Some(elapsed);
 
         results
     }

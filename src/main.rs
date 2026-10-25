@@ -31,7 +31,7 @@ fn main() {
     let normalized = simulation_results.normalized();
     let mut i = 0;
     for result in normalized {
-        if i < 100 {
+        if i < 20 {
             i += 1;
         } else {
             break;
