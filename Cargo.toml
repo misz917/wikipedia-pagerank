@@ -1,5 +1,5 @@
 [package]
-name = "ezi2-rust"
+name = "wikipedia-pagerank"
 version = "0.1.0"
 edition = "2024"
 

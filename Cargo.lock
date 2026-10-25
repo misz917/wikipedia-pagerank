@@ -156,18 +156,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
 
 [[package]]
-name = "ezi2-rust"
-version = "0.1.0"
-dependencies = [
- "clap",
- "rand",
- "rayon",
- "thiserror",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "getrandom"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -443,6 +431,18 @@ name = "valuable"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
+
+[[package]]
+name = "wikipedia-pagerank"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "rand",
+ "rayon",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "windows-link"
