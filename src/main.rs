@@ -19,15 +19,12 @@ fn main() {
         .init();
 
     let file_path = cli.data_file_path;
-
     let data = DataLoader::load_from_path(&file_path).unwrap();
 
     let mut config = SimulationConfig::default();
     config.simulation_steps = 1_000_000;
 
-    let mut simulator = Simulator::new(data);
-    simulator.set_config(config);
-
-    let simulation_results = simulator.run_simulation();
+    let simulator = Simulator::new(data, config).unwrap();
+    let simulation_results = simulator.run();
     simulation_results.print_normalized_results();
 }

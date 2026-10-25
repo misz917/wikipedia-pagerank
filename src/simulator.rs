@@ -1,95 +1,100 @@
 use std::collections::HashMap;
 
-use crate::{data::Data, simulation_config::SimulationConfig};
+use rand::seq::IndexedRandom;
+
+use crate::{
+    data::Data,
+    simulation_config::{SimulationConfig, SimulationConfigError},
+};
 
 #[derive(Debug)]
 pub struct Simulator {
     data: Data,
-    markov_config: SimulationConfig,
+    config: SimulationConfig,
+    source_nodes: Vec<u32>, // for O(1) random jumps
 }
 
 impl Simulator {
-    pub fn new(data: Data) -> Self {
-        Simulator {
+    pub fn new(data: Data, config: SimulationConfig) -> Result<Self, Vec<SimulationConfigError>> {
+        config.test_config()?;
+        let source_nodes: Vec<u32> = data.0.keys().map(|k| *k).collect();
+
+        Ok(Self {
             data,
-            markov_config: SimulationConfig::default(),
-        }
+            config: config,
+            source_nodes,
+        })
     }
 
-    pub fn set_config(&mut self, markov_config: SimulationConfig) {
-        self.markov_config = markov_config;
-    }
+    pub fn run(self) -> SimulationResults {
+        let steps = self.config.simulation_steps;
 
-    pub fn run_simulation(self) -> SimulationResults {
-        self.markov_config.test_config().unwrap();
         tracing::info!("Starting simulation");
+        tracing::info!(
+            steps,
+            random_jump_chance = self.config.random_jump_chance,
+            nodes = self.source_nodes.len()
+        );
 
-        let mut simulation_results = SimulationResults::new(&self.data);
+        let mut results = SimulationResults::new(&self.data);
         let mut current_node = self.data.get_random().unwrap();
-        let mut next_node: u32;
-        for step in 1..=self.markov_config.simulation_steps {
-            simulation_results.increment(current_node);
 
-            // if key was found in the hashmap
-            if let Some(connected_nodes) = self.data.get_by_key(current_node) {
-                if rand::random_bool(self.markov_config.random_jump_chance.into()) {
-                    // if random jump chance hit -> do a random jump
-                    next_node = self.data.get_random().unwrap();
-                } else {
-                    // if random jump chance missed -> choose randomly among connections
-                    next_node = Self::random_next(connected_nodes);
-                }
-            } else {
-                // if key wasn't in the hashmap -> do a random jump
-                next_node = self.data.get_random().unwrap();
-            }
-
-            current_node = next_node;
+        for _ in 0..steps {
+            results.record(current_node);
+            current_node = self.next_node(current_node);
         }
 
-        simulation_results.steps_passed = Some(self.markov_config.simulation_steps);
-        tracing::info!("Done. Simulator finished");
-        simulation_results
+        tracing::info!("simulation finished");
+        results
     }
 
-    fn random_next(nodes: &Vec<u32>) -> u32 {
-        let random_index = rand::random_range(0..nodes.len());
-        let next_node = nodes[random_index];
+    fn next_node(&self, node: u32) -> u32 {
+        if rand::random_bool(f64::from(self.config.random_jump_chance)) {
+            return self.random_node();
+        }
 
-        next_node
+        self.data
+            .get_by_key(node)
+            .and_then(|edges| edges.choose(&mut rand::rng()))
+            .copied()
+            .unwrap_or_else(|| self.random_node())
+    }
+
+    fn random_node(&self) -> u32 {
+        *self
+            .source_nodes
+            .choose(&mut rand::rng())
+            .expect("random_node failed")
     }
 }
 
 #[derive(Debug)]
 pub struct SimulationResults {
-    pub hashmap: HashMap<u32, u32>,
-    pub steps_passed: Option<u64>,
+    pub visits: HashMap<u32, u64>,
+    pub steps: u64,
 }
 
 impl SimulationResults {
     pub fn new(data: &Data) -> Self {
         let keys = data.0.keys();
 
-        let hashmap: HashMap<u32, u32> = keys.map(|k| (*k, 0)).collect();
+        let visits: HashMap<u32, u64> = keys.map(|k| (*k, 0)).collect();
 
-        Self {
-            hashmap,
-            steps_passed: None,
-        }
+        Self { visits, steps: 0 }
     }
 
     #[inline]
-    pub fn increment(&mut self, key: u32) {
-        let value = self.hashmap.get_mut(&key).unwrap();
-        *value += 1;
+    pub fn record(&mut self, node: u32) {
+        *self.visits.entry(node).or_insert(0) += 1;
+        self.steps += 1;
     }
 
     pub fn print_normalized_results(&self) {
-        let keys = self.hashmap.keys();
+        let keys = self.visits.keys();
 
         let mut quality: f32;
         for k in keys {
-            quality = *self.hashmap.get(k).unwrap() as f32 / self.steps_passed.unwrap() as f32;
+            quality = *self.visits.get(k).unwrap() as f32 / self.steps as f32;
             println!("Node: {}, Quality: {}", k, quality);
         }
     }
