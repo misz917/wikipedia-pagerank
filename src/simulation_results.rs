@@ -58,5 +58,7 @@ impl SimulationResults {
             *self.visits.entry(node).or_insert(0) += count;
         }
         self.total_steps += other.total_steps;
+
+        self.execution_time = self.execution_time.max(other.execution_time);
     }
 }
