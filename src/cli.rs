@@ -10,4 +10,7 @@ pub struct Cli {
     /// OFF < ERROR < WARN < INFO < DEBUG < TRACE
     #[arg(long, default_value_t = Level::INFO)]
     pub log_level: Level,
+
+    #[arg(short, long)]
+    pub steps: Option<u64>,
 }

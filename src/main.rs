@@ -22,7 +22,7 @@ fn main() {
     let data = DataLoader::load_from_path(&file_path).unwrap();
 
     let mut config = SimulationConfig::default();
-    config.simulation_steps = 1_000_000;
+    config.simulation_steps = cli.steps.unwrap_or(1_000_000);
 
     let simulator = Simulator::new(data, config).unwrap();
     let simulation_results = simulator.run();
